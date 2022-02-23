@@ -83,7 +83,6 @@ fn main() {
     let plotfreq = 100;
 
     while t < tmax {
-
         if count % plotfreq == 0 {
             plot1d(&xc, &u_now, &u_now);
         }
@@ -94,7 +93,9 @@ fn main() {
                 -uprev[i] + 2. * (1. - b * b) * u_now[i] + b * b * (u_now[i - 1] + u_now[i + 1]);
         }
         //unext[0] = unext[1];
+        // fixed the left 
         unext[0] = 0.;
+        // free on the right
         unext[nx + 1] = unext[nx];
         //unext[nx + 1] = 0.;
         for i in 0..nx + 2 {
