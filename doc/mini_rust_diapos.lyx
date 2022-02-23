@@ -89,7 +89,7 @@ Mini introduction to Rust
 \end_layout
 
 \begin_layout Author
-Philippe Helluy, Victor Michel-Dansac
+Philippe Helluy
 \end_layout
 
 \begin_layout Institute
@@ -97,7 +97,7 @@ Inria Tonus
 \end_layout
 
 \begin_layout Section
-A simple transport solver in Rust
+A simple wave solver in Rust
 \end_layout
 
 \begin_layout Frame
@@ -195,15 +195,12 @@ Rust install with the command
 \end_layout
 
 \begin_layout Standard
-
-\lang french
 \begin_inset listings
 lstparams "basicstyle={\footnotesize\ttfamily}"
 inline true
 status open
 
 \begin_layout Plain Layout
-
 curl -$
 \backslash
 ,$-proto '=https' -$
@@ -227,7 +224,6 @@ inline false
 status open
 
 \begin_layout Plain Layout
-
 cargo new bonjour; cd bonjour
 \end_layout
 
@@ -247,7 +243,6 @@ inline false
 status open
 
 \begin_layout Plain Layout
-
 cargo run
 \end_layout
 
@@ -286,7 +281,7 @@ The file Cargo.toml is an important config file.
 status open
 
 \begin_layout Plain Layout
-Upwind transport solver
+1D solver
 \end_layout
 
 \end_inset
@@ -296,11 +291,7 @@ Upwind transport solver
 
 \begin_deeper
 \begin_layout Standard
-Transport equation at velocity 
-\begin_inset Formula $c<0$
-\end_inset
-
-, with unknown 
+Wave equation with unknown 
 \begin_inset Formula $u(x,t)$
 \end_inset
 
@@ -315,20 +306,12 @@ Transport equation at velocity
 
 \begin_inset Formula 
 \[
-\frac{\partial u}{\partial t}+c\frac{\partial u}{\partial x}=0,\quad u(x,0)=u^{0}(x).
+\frac{\partial^{2}u}{\partial t^{2}}-\frac{\partial^{2}u}{\partial x^{2}}=0,\quad u(x,0)=u^{0}(x),\quad\frac{\partial u}{\partial t}(x,0)=0.
 \]
 
 \end_inset
 
-The exact solution is
-\begin_inset Formula 
-\[
-u(x,t)=u^{0}(x-ct).
-\]
-
-\end_inset
-
-Upwind finite difference scheme, 
+Leapfrog scheme
 \begin_inset Formula 
 \[
 u_{i}^{n}\simeq u(x_{i},t_{n}),\quad x_{i}=i\Delta x,\quad t_{n}=n\Delta t,
@@ -338,26 +321,14 @@ u_{i}^{n}\simeq u(x_{i},t_{n}),\quad x_{i}=i\Delta x,\quad t_{n}=n\Delta t,
 
 
 \begin_inset Formula 
-\[
-\frac{u_{i}^{n+1}-u_{i}^{n}}{\Delta t}+c\frac{u_{i+1}^{n}-u_{i}^{n}}{\Delta x}=0,\quad u_{i}^{0}=u^{0}(x_{i}).
-\]
+\begin{equation}
+u_{i}^{n+1}=-u_{i}^{n-1}+2(1-\beta^{2})u_{i}^{n}+\beta^{2}\left(u_{i-1}^{n}+u_{i+1}^{n}\right),\label{eq:leapfrog}
+\end{equation}
 
 \end_inset
 
-We store 
-\begin_inset Formula $u_{i}^{n}$
-\end_inset
-
- at time 
-\begin_inset Formula $n$
-\end_inset
-
- in the array 
-\begin_inset Formula $\texttt{un[i]}$
-\end_inset
-
-, 
-\begin_inset Formula $\texttt{0\ensuremath{\leq}i<nx+1}$
+where 
+\begin_inset Formula $\beta=\Delta t/\Delta x$
 \end_inset
 
 .
@@ -405,7 +376,11 @@ The compiler messages are generally helpful.
 
 \begin_layout Itemize
 It is recommended to use iterators for efficient and robust programs.
- Use of two different arrays for storing 
+ Use of three different arrays for storing 
+\begin_inset Formula $u_{i}^{n-1}$
+\end_inset
+
+, 
 \begin_inset Formula $u_{i}^{n}$
 \end_inset
 
@@ -427,12 +402,216 @@ status open
 
 \begin_layout Plain Layout
 
-https://github.com/phelluy/upwind_rs
+https://github.com/phelluy/tutorust
 \end_layout
 
 \end_inset
 
 
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+First transformation
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+improve the solver thanks to cargo clippy
+\end_layout
+
+\begin_layout Itemize
+change all loop with iterators
+\end_layout
+
+\begin_layout Itemize
+make the solver parallel thanks to rayon
+\end_layout
+
+\begin_layout Itemize
+try to change some parts of the program
+\end_layout
+
+\begin_layout Itemize
+simple lines can be tested at 
+\begin_inset CommandInset href
+LatexCommand href
+name "https://play.rust-lang.org/"
+target "https://play.rust-lang.org/"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+2D solver
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+We know consider the 2D case on a square.En 2D, le schéma saute-mouton avec
+ source sonore s'écrit
+\begin_inset Formula 
+\begin{multline}
+p_{i,j}^{n+1}=-p_{i,j}^{n-1}+2(1-2\beta^{2})p_{i,j}^{n}\\
++\beta^{2}\left(p_{i-1,j}^{n}+p_{i+1,j}^{n}p_{i,j-1}^{n}+p_{i,j+1}^{n}\right).\label{eq:leapfrog-2d}
+\end{multline}
+
+\end_inset
+
+Pour les bords parfaitement réfléchissants, il faut utiliser les relations
+ suivantes
+\begin_inset Formula 
+\begin{equation}
+p_{0,j}^{n}=p_{1,j}^{n}.\label{eq:west}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+p_{N+1,j}^{n}=p_{N,j}^{n}.\label{eq:east}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+p_{i,0}^{n}=p_{i,1}^{n}.\label{eq:south}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+p_{i,N+1}^{n}=p_{i,N}^{n}.\label{eq:north}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+Code description
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+we define a 2D array struct
+\end_layout
+
+\begin_layout Itemize
+overloading of the [][] operator
+\end_layout
+
+\begin_layout Itemize
+template <T>
+\end_layout
+
+\begin_layout Itemize
+parallelism with rayon
+\end_layout
+
+\begin_layout Itemize
+2D plot with python
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+OpenCL wrapper in Rust
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+C bindings
+\end_layout
+
+\begin_layout Itemize
+unsafe code
+\end_layout
+
+\begin_layout Itemize
+fine memory management
+\end_layout
+
+\begin_layout Itemize
+example of macro
+\end_layout
+
+\begin_layout Itemize
+application to the wave equation on GPU
 \end_layout
 
 \end_deeper
@@ -594,7 +773,7 @@ Dependency graph of the computations
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename ../patapon/mhd/doc/img_beamer/downwind_graph.png
+	filename ../../patapon/mhd/doc/img_beamer/downwind_graph.png
 	lyxscale 50
 	width 60text%
 
@@ -668,7 +847,7 @@ literal "false"
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename ../patapon/mhd/doc/img_beamer/speedup_mem.png
+	filename ../../patapon/mhd/doc/img_beamer/speedup_mem.png
 	width 80text%
 
 \end_inset
@@ -814,10 +993,10 @@ Bibliography
 \begin_layout Standard
 
 \size tiny
- 
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
-bibfiles "../patapon/mhd/doc/spring_mhd_lbm"
+btprint "btPrintCited"
+bibfiles "/Users/helluy/GITLAB/patapon/mhd/doc/spring_mhd_lbm"
 options "alpha"
 
 \end_inset

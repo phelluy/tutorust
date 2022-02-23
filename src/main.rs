@@ -1,32 +1,5 @@
 const L: f64 = 1.;
 
-const POS: f64 = 0.5;
-
-const SIZE: f64 = 0.1;
-
-fn plot1d(x: &Vec<f64>, y: &Vec<f64>, z: &Vec<f64>) {
-    let filename = "ploplo.dat";
-    use std::fs::File;
-    use std::io::BufWriter;
-    use std::io::Write;
-    {
-        let meshfile = File::create(filename).unwrap();
-        let mut meshfile = BufWriter::new(meshfile); // create a buffer for faster writes...
-
-        x.iter()
-            .zip(y.iter().zip(z.iter()))
-            .for_each(|(x, (y, z))| {
-                writeln!(meshfile, "{} {} {}", *x, *y, *z).unwrap();
-            });
-    }
-
-    use std::process::Command;
-    Command::new("python3")
-        .arg("src/plot1d.py")
-        .status()
-        .expect("plot failed !");
-}
-
 fn peak(x: f64) -> f64 {
     let r2 = x * x;
     let eps = 0.2;
@@ -40,14 +13,6 @@ fn peak(x: f64) -> f64 {
 
 fn bosse(x: f64) -> f64 {
     peak(x - 0.5)
-}
-
-fn caillou(x: f64) -> f64 {
-    if x < POS + SIZE / 2. && x > POS - SIZE / 2. {
-        1.
-    } else {
-        0.
-    }
 }
 
 fn main() {
@@ -109,3 +74,27 @@ fn main() {
 
     plot1d(&xc, &u_now, &u_now);
 }
+
+fn plot1d(x: &Vec<f64>, y: &Vec<f64>, z: &Vec<f64>) {
+    let filename = "ploplo.dat";
+    use std::fs::File;
+    use std::io::BufWriter;
+    use std::io::Write;
+    {
+        let meshfile = File::create(filename).unwrap();
+        let mut meshfile = BufWriter::new(meshfile); // create a buffer for faster writes...
+
+        x.iter()
+            .zip(y.iter().zip(z.iter()))
+            .for_each(|(x, (y, z))| {
+                writeln!(meshfile, "{} {} {}", *x, *y, *z).unwrap();
+            });
+    }
+
+    use std::process::Command;
+    Command::new("python3")
+        .arg("src/plot1d.py")
+        .status()
+        .expect("plot failed !");
+}
+
