@@ -11,22 +11,9 @@ fn peak(x: f64) -> f64 {
     }
 }
 
-fn bosse2d(x: f64, y: f64) -> f64 {
-    let r = ((x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)).sqrt();
-    peak(r)
-}
-
 fn bosse(x: f64) -> f64 {
-    peak(x-0.5)
+    peak(x - 0.5)
 }
-
-#[derive(Debug, Clone)]
-struct Data2D<T> {
-    n: usize,
-    data: Vec<T>,
-}
-
-// voir https://stackoverflow.com/questions/33770989/implementing-the-index-operator-for-matrices-with-multiple-parameters
 
 fn main() {
     let nx = 1000;
