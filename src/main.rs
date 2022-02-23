@@ -51,11 +51,11 @@ fn caillou(x: f64) -> f64 {
 }
 
 fn main() {
-    let nx = 100;
+    let nx = 1000;
 
     let dx = L / nx as f64;
 
-    let tmax = 0.7;
+    let tmax = 3.;
 
     let cfl = 0.8;
 
@@ -80,7 +80,7 @@ fn main() {
 
     let b = dt / dx;
     let mut count = 0;
-    let plotfreq = 10;
+    let plotfreq = 100;
 
     while t < tmax {
 
