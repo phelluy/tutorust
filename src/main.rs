@@ -1,27 +1,14 @@
-const C: f64 = -1.;
-
 const L: f64 = 1.;
 
-fn peak(x: f64) -> f64 {
-    let r2 = x * x;
-    let eps = 0.1;
-    let eps2 = eps * eps;
-    if r2 / eps2 < 1. {
-        (1. - r2 / eps2).powi(4)
-    } else {
-        0.
-    }
-}
+const POS: f64 = 0.5;
 
-fn exact_sol(x: f64, t: f64) -> f64 {
-    peak(x - C * t - 0.8)
-}
+const SIZE: f64 = 0.1;
 
 fn plot1d(x: &Vec<f64>, y: &Vec<f64>, z: &Vec<f64>) {
     let filename = "ploplo.dat";
-        use std::fs::File;
-        use std::io::BufWriter;
-        use std::io::{Write};    
+    use std::fs::File;
+    use std::io::BufWriter;
+    use std::io::Write;
     {
         let meshfile = File::create(filename).unwrap();
         let mut meshfile = BufWriter::new(meshfile); // create a buffer for faster writes...
@@ -40,46 +27,84 @@ fn plot1d(x: &Vec<f64>, y: &Vec<f64>, z: &Vec<f64>) {
         .expect("plot failed !");
 }
 
+fn peak(x: f64) -> f64 {
+    let r2 = x * x;
+    let eps = 0.2;
+    let eps2 = eps * eps;
+    if r2 / eps2 < 1. {
+        (1. - r2 / eps2).powi(4)
+    } else {
+        0.
+    }
+}
 
-fn main()  {
-    let nx = 1000;
+fn bosse(x: f64) -> f64 {
+    peak(x - 0.5)
+}
+
+fn caillou(x: f64) -> f64 {
+    if x < POS + SIZE / 2. && x > POS - SIZE / 2. {
+        1.
+    } else {
+        0.
+    }
+}
+
+fn main() {
+    let nx = 100;
 
     let dx = L / nx as f64;
 
-    let mut un = vec![0.; nx + 1];
+    let tmax = 0.7;
 
-    let mut xc = vec![0.; nx + 1];
+    let cfl = 0.8;
 
-    for i in 0..nx + 1 {
-        xc[i] = i as f64 * dx;
+    let dt = dx * cfl;
+
+    let mut u_now = vec![0.; nx + 2];
+    let mut unext = vec![0.; nx + 2];
+    let mut uprev = vec![0.; nx + 2];
+
+    let mut xc = vec![0.; nx + 2];
+
+    for i in 0..nx + 2 {
+        xc[i] = i as f64 * dx - dx / 2.;
     }
 
-    for i in 0..nx + 1 {
-        un[i] = exact_sol(xc[i], 0.);
+    for i in 0..nx + 2 {
+        u_now[i] = bosse(xc[i]);
+        uprev[i] = bosse(xc[i]);
     }
 
     let mut t = 0.;
 
-    plot1d(&xc, &un, &un);
-
-    let tmax = 0.3;
-
-    let cfl = 0.8;
-
-    let dt = dx / C.abs() * cfl;
-
+    let b = dt / dx;
+    let mut count = 0;
+    let plotfreq = 10;
 
     while t < tmax {
-        for i in 0..nx {
-            un[i] = un[i] - C * dt / dx * (un[i + 1] - un[i]);
+
+        if count % plotfreq == 0 {
+            plot1d(&xc, &u_now, &u_now);
         }
-        t +=  dt;
-        un[nx] = exact_sol(xc[nx], t);
+        count += 1;
+
+        for i in 1..nx + 1 {
+            unext[i] =
+                -uprev[i] + 2. * (1. - b * b) * u_now[i] + b * b * (u_now[i - 1] + u_now[i + 1]);
+        }
+        //unext[0] = unext[1];
+        unext[0] = 0.;
+        unext[nx + 1] = unext[nx];
+        //unext[nx + 1] = 0.;
+        for i in 0..nx + 2 {
+            uprev[i] = u_now[i];
+            u_now[i] = unext[i];
+        }
+        t += dt;
 
         println!("t={}, dt={}", t, dt);
     }
 
-
-    plot1d(&xc, &un, &un);
-
+    plot1d(&xc, &u_now, &u_now);
 }

@@ -354,6 +354,11 @@ Nous constatons que l'énergie décroît.
 \end_inset
 
  (réflexion maximale des ondes).
+ Dans la suite, nous supposons que 
+\begin_inset Formula $r=1$
+\end_inset
+
+ (paroi parfaitement réfléchissante).
 \end_layout
 
 \begin_layout Subsection
@@ -369,7 +374,7 @@ Nous commençons par écrire le schéma en 1D sans source sonore.
  Le pas d'espace est donné par
 \begin_inset Formula 
 \[
-\Delta x=\frac{L}{N-1},
+\Delta x=\frac{L}{N},
 \]
 
 \end_inset
@@ -382,7 +387,7 @@ le pas de temps est noté
  Les points de discrétisation sont
 \begin_inset Formula 
 \[
-x_{i}=i\Delta x,\quad i=0\ldots N-1.
+x_{i}=(i-\frac{1}{2})\Delta x,\quad0\leq i<N+2.
 \]
 
 \end_inset
@@ -398,7 +403,7 @@ p_{i}^{n}\simeq p(x_{i},n\Delta t).
 Le schéma saute-mouton s'écrit
 \begin_inset Formula 
 \[
-\frac{-p_{i}^{n-1}+2p_{i}^{n}-p_{i}^{n+1}}{\Delta t^{2}}-c^{2}\frac{-p_{i-1}^{n}+2p_{i}^{n}-p_{i+1}^{n}}{\Delta x^{2}}=0,\quad i=1\ldots N-2.
+\frac{-p_{i}^{n-1}+2p_{i}^{n}-p_{i}^{n+1}}{\Delta t^{2}}-c^{2}\frac{-p_{i-1}^{n}+2p_{i}^{n}-p_{i+1}^{n}}{\Delta x^{2}}=0,\quad1\leq i\leq N.
 \]
 
 \end_inset
@@ -427,15 +432,23 @@ C'est le coefficient de CFL, il doit être plus petit que
 \end_layout
 
 \begin_layout Standard
-Pour 
+Les indices 
 \begin_inset Formula $i=0$
 \end_inset
 
  et 
-\begin_inset Formula $i=N-1$
+\begin_inset Formula $i=N+1$
 \end_inset
 
- le schéma doit être modifié pour tenir compte des conditions aux limites.
+ correspondent à des cellules 
+\begin_inset Quotes fld
+\end_inset
+
+fantôme
+\begin_inset Quotes frd
+\end_inset
+
+ et servent à tenir compte des conditions aux limites.
 \end_layout
 
 \begin_layout Standard
@@ -446,7 +459,7 @@ Si
 , 
 \begin_inset Formula 
 \[
-\frac{\partial p}{\partial n}=-p_{x}\simeq\frac{-p_{i+1}^{n}+p_{i-1}^{n}}{2\Delta x}=-\frac{1}{c}\frac{1-r}{1+r}\frac{p_{i}^{n+1}-p_{i}^{n-1}}{2\Delta t}.
+\frac{\partial p}{\partial n}=-p_{x}\simeq\frac{-p_{i+1}^{n}+p_{i}^{n}}{\Delta x}=-\frac{1}{c}\frac{1-r}{1+r}\frac{p_{i+1/2}^{n+1}-p_{i+1/2}^{n-1}}{2\Delta t}=0.
 \]
 
 \end_inset
@@ -454,7 +467,7 @@ Si
 Soit
 \begin_inset Formula 
 \begin{equation}
-p_{-1}^{n}=p_{1}^{n}-\frac{1}{\beta}\frac{1-r}{1+r}\left(p_{0}^{n+1}-p_{0}^{n-1}\right).\label{eq:left}
+p_{0}^{n}=p_{1}^{n}.\label{eq:left}
 \end{equation}
 
 \end_inset
@@ -464,13 +477,13 @@ p_{-1}^{n}=p_{1}^{n}-\frac{1}{\beta}\frac{1-r}{1+r}\left(p_{0}^{n+1}-p_{0}^{n-1}
 
 \begin_layout Standard
 De même, si 
-\begin_inset Formula $i=N-1$
+\begin_inset Formula $i=N+1$
 \end_inset
 
 ,
 \begin_inset Formula 
 \[
-\frac{\partial p}{\partial n}=p_{x}\simeq\frac{p_{i+1}^{n}-p_{i-1}^{n}}{2\Delta x}=-\frac{1}{c}\frac{1-r}{1+r}\frac{p_{i}^{n+1}-p_{i}^{n-1}}{2\Delta t}.
+\frac{\partial p}{\partial n}=p_{x}\simeq\frac{p_{i}^{n}-p_{i-1}^{n}}{2\Delta x}=-\frac{1}{c}\frac{1-r}{1+r}\frac{p_{i-1/2}^{n+1}-p_{i-1/2}^{n-1}}{2\Delta t}=0.
 \]
 
 \end_inset
@@ -482,7 +495,7 @@ De même, si
 Soit
 \begin_inset Formula 
 \begin{equation}
-p_{N}^{n}=p_{N-2}^{n}-\frac{1}{\beta}\frac{1-r}{1+r}\left(p_{N-1}^{n+1}-p_{N-1}^{n-1}\right).\label{eq:right}
+p_{N+1}^{n}=p_{N}^{n}.\label{eq:right}
 \end{equation}
 
 \end_inset
@@ -518,84 +531,11 @@ noprefix "false"
 \end_inset
 
 ) a encore un sens pour 
-\begin_inset Formula $i=0$
+\begin_inset Formula $i=1$
 \end_inset
 
  et 
-\begin_inset Formula $i=N-1.$
-\end_inset
-
- En remplaçant 
-\begin_inset Formula $p_{-1}^{n}$
-\end_inset
-
- et 
-\begin_inset Formula $p_{N}^{n}$
-\end_inset
-
- dans (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:leapfrog"
-plural "false"
-caps "false"
-noprefix "false"
-
-\end_inset
-
-) par les valeurs données respectivement par (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:left"
-plural "false"
-caps "false"
-noprefix "false"
-
-\end_inset
-
-) et (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:right"
-plural "false"
-caps "false"
-noprefix "false"
-
-\end_inset
-
-), on obtient les formules de mise à jour suivantes pour les points de bord
- :
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-p_{0}^{n+1}=\frac{1}{1+r^{*}}\left(\left(r^{*}-1\right)p_{0}^{n-1}+2\beta^{2}(p_{1}^{n}-p_{0}^{n})+2p_{0}^{n}\right)\label{eq:leftbc}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\begin{equation}
-p_{N-1}^{n+1}=\frac{1}{1+r^{*}}\left(\left(r^{*}-1\right)p_{N-1}^{n-1}+2\beta^{2}(p_{N-2}^{n}-p_{N-1}^{n})+2p_{N-1}^{n}\right)\label{eq:rightbc}
-\end{equation}
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-avec 
-\begin_inset Formula 
-\[
-r^{*}=\beta\frac{1-r}{1+r}
-\]
-
+\begin_inset Formula $i=N.$
 \end_inset
 
  
@@ -614,7 +554,7 @@ on
 
 \begin_inset Formula 
 \[
-\Delta y=\frac{H}{M-1}.
+\Delta y=\frac{H}{M}.
 \]
 
 \end_inset
@@ -622,7 +562,7 @@ on
 De même
 \begin_inset Formula 
 \[
-y_{j}=j\Delta y,\quad j=0\ldots M-1.
+y_{j}=(j-\frac{1}{2})\Delta y,\quad0\leq j<M+2.
 \]
 
 \end_inset
@@ -652,10 +592,11 @@ p_{i,j}^{n+1}=-p_{i,j}^{n-1}+2(1-\beta_{x}^{2}-\beta_{y}^{2})p_{i,j}^{n}\\
 
 \end_inset
 
-Pour les bords, il faut utiliser les relations suivantes
+Pour les bords parfaitement réfléchissant, il faut utiliser les relations
+ suivantes
 \begin_inset Formula 
 \begin{equation}
-p_{-1,j}^{n}=p_{1,j}^{n}-\frac{1}{\beta_{x}}\frac{1-r}{1+r}\left(p_{0,j}^{n+1}-p_{0,j}^{n-1}\right).\label{eq:west}
+p_{0,j}^{n}=p_{1,j}^{n}.\label{eq:west}
 \end{equation}
 
 \end_inset
@@ -663,7 +604,7 @@ p_{-1,j}^{n}=p_{1,j}^{n}-\frac{1}{\beta_{x}}\frac{1-r}{1+r}\left(p_{0,j}^{n+1}-p
 
 \begin_inset Formula 
 \begin{equation}
-p_{N,j}^{n}=p_{N-2,j}^{n}-\frac{1}{\beta_{x}}\frac{1-r}{1+r}\left(p_{N-1,j}^{n+1}-p_{N-1,j}^{n-1}\right).\label{eq:east}
+p_{N+1,j}^{n}=p_{N,j}^{n}.\label{eq:east}
 \end{equation}
 
 \end_inset
@@ -671,7 +612,7 @@ p_{N,j}^{n}=p_{N-2,j}^{n}-\frac{1}{\beta_{x}}\frac{1-r}{1+r}\left(p_{N-1,j}^{n+1
 
 \begin_inset Formula 
 \begin{equation}
-p_{i,-1}^{n}=p_{i,1}^{n}-\frac{1}{\beta_{y}}\frac{1-r}{1+r}\left(p_{i,0}^{n+1}-p_{i,0}^{n-1}\right).\label{eq:south}
+p_{i,0}^{n}=p_{i,1}^{n}.\label{eq:south}
 \end{equation}
 
 \end_inset
@@ -679,321 +620,8 @@ p_{i,-1}^{n}=p_{i,1}^{n}-\frac{1}{\beta_{y}}\frac{1-r}{1+r}\left(p_{i,0}^{n+1}-p
 
 \begin_inset Formula 
 \begin{equation}
-p_{i,M}^{n}=p_{i,M-2}^{n}-\frac{1}{\beta_{y}}\frac{1-r}{1+r}\left(p_{i,M-1}^{n+1}-p_{i,M-1}^{n-1}\right).\label{eq:north}
+p_{i,M+1}^{n}=p_{i,M}^{n}.\label{eq:north}
 \end{equation}
-
-\end_inset
-
-Nous pouvons encore écrire (
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:west"
-plural "false"
-caps "false"
-noprefix "false"
-
-\end_inset
-
-) sous la forme
-\begin_inset Formula 
-\begin{equation}
-p_{0,j}^{n+1}=p_{0,j}^{n-1}+\left(p_{1,j}^{n}-p_{-1,j}^{n}\right)\frac{1+r}{1-r}\beta_{x}.\label{eq:west_bis}
-\end{equation}
-
-\end_inset
-
-En faisant 
-\begin_inset Formula $\alpha$
-\end_inset
-
-(
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:leapfrog-2d"
-plural "false"
-caps "false"
-noprefix "false"
-
-\end_inset
-
-)
-\begin_inset Formula $+(1-\alpha)$
-\end_inset
-
-(
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "eq:west_bis"
-plural "false"
-caps "false"
-noprefix "false"
-
-\end_inset
-
-) nous trouvons
-\begin_inset Formula 
-\begin{multline*}
-p_{0,j}^{n+1}=(1-2\alpha)p_{0,j}^{n-1}+2\alpha(1-\beta_{x}^{2}-\beta_{y}^{2})p_{0,j}^{n}\\
-+\alpha\beta_{x}^{2}\left(p_{-1,j}^{n}+p_{1,j}^{n}\right)+\alpha\beta_{y}^{2}\left(p_{0,j-1}^{n}+p_{0,j+1}^{n}\right)+\alpha\Delta t^{2}s_{0,j}^{n}\\
-+(1-\alpha)\left(p_{1,j}^{n}-p_{-1,j}^{n}\right)\frac{1+r}{1-r}\beta_{x}.
-\end{multline*}
-
-\end_inset
-
-Il faut maintenant choisir 
-\begin_inset Formula $\alpha$
-\end_inset
-
- de sorte que les termes en 
-\begin_inset Formula $p_{-1,j}^{n}$
-\end_inset
-
- disparaissent.
- Nous trouvons
-\begin_inset Formula 
-\[
-\alpha\beta_{x}-(1-\alpha)\frac{1+r}{1-r}=0,
-\]
-
-\end_inset
-
-soit, en posant 
-\begin_inset Formula 
-\[
-\gamma=\frac{1-r}{1+r},
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-\alpha=\frac{1}{1+\beta_{x}\gamma}.
-\]
-
-\end_inset
-
-Notons que 
-\begin_inset Formula $0<\alpha\leq1$
-\end_inset
-
- et que 
-\begin_inset Formula $\alpha=1$
-\end_inset
-
- correspond à la réflexion idéale (condition de Neumann).
- Finalement
-\begin_inset Formula 
-\begin{multline*}
-p_{0,j}^{n+1}=(1-2\alpha)p_{0,j}^{n-1}+2\alpha(1-\beta_{x}^{2}-\beta_{y}^{2})p_{0,j}^{n}\\
-+2\alpha\beta_{x}^{2}p_{1,j}^{n}+\alpha\beta_{y}^{2}\left(p_{0,j-1}^{n}+p_{0,j+1}^{n}\right)+\alpha\Delta t^{2}s_{0,j}^{n}.
-\end{multline*}
-
-\end_inset
-
-Nous obtenons des formules similaires pour les autres bords.
-\end_layout
-
-\begin_layout Standard
-TODO: les coins et formule générale.
-\end_layout
-
-\begin_layout Section
-Modèle cinétique pour les ondes
-\end_layout
-
-\begin_layout Section
-Modèle entropique pour les ondes
-\end_layout
-
-\begin_layout Standard
-Nous considérons maintenant le modèle suivant 
-\begin_inset Formula 
-\[
-\partial_{t}f+v\cdot\nabla f=s+\frac{1}{\varepsilon}(M_{f}-f),\quad v=(\cos\theta,\sin\theta).
-\]
-
-\end_inset
-
-Nous pouvons donc considérer que 
-\begin_inset Formula $f$
-\end_inset
-
- est une fonction de 
-\begin_inset Formula $\theta\in[0,2\pi]$
-\end_inset
-
-.
- Ici, 
-\begin_inset Formula $M_{f}$
-\end_inset
-
- est une distribution 
-\begin_inset Quotes fld
-\end_inset
-
-maxwellienne
-\begin_inset Quotes frd
-\end_inset
-
-.
- Le manque d'information fait que 
-\begin_inset Formula $f$
-\end_inset
-
- est souvent proche de cet état maxwellien.
- 
-\begin_inset Formula $M_{f}$
-\end_inset
-
- est défini de la façon suivante.
- Nous notons 
-\begin_inset Formula $w$
-\end_inset
-
- la densité d'énergie acoustique et 
-\begin_inset Formula $I$
-\end_inset
-
- le vecteur intensité acoustique.
- Par définition
-\begin_inset Formula 
-\[
-w=\int_{v}fdv,\quad I=\int_{v}fvdv.
-\]
-
-\end_inset
-
-Soit
-\begin_inset Formula 
-\[
-w=\int_{0}^{2\pi}f(\theta)d\theta,\quad I=\int_{0}^{2\pi}f(\theta)\left(\begin{array}{c}
-\cos\theta\\
-\sin\theta
-\end{array}\right)d\theta.
-\]
-
-\end_inset
-
-Nous introduisons l'information de Shannon associée à la distribution 
-\begin_inset Formula $f$
-\end_inset
-
-
-\begin_inset Formula 
-\[
-S(f)=\int_{0}^{2\pi}f(\ln f-1).
-\]
-
-\end_inset
-
-La maxwellienne est telle que
-\begin_inset Formula 
-\[
-M_{f}=\underset{w=\int f,I=\int fv}{\text{argmax}}S(f).
-\]
-
-\end_inset
-
-Un calcul d'optimisation sous contrainte (TODO) montre que
-\begin_inset Formula 
-\[
-M_{f}=A\exp^{B\cos(\theta-\theta_{0})}.
-\]
-
-\end_inset
-
-L'angle 
-\begin_inset Formula $\theta_{0}$
-\end_inset
-
- est défini par
-\begin_inset Formula 
-\[
-I=\left|I\right|\left(\begin{array}{c}
-\cos\theta_{0}\\
-\sin\theta_{0}
-\end{array}\right).
-\]
-
-\end_inset
-
-Il reste à déterminer les constantes 
-\begin_inset Formula $A$
-\end_inset
-
- et 
-\begin_inset Formula $B$
-\end_inset
-
- en fonction de 
-\begin_inset Formula $w$
-\end_inset
-
- et 
-\begin_inset Formula $\left|I\right|$
-\end_inset
-
-.
- Pour cela, nous avons, d'une part
-\begin_inset Formula 
-\[
-w=\int_{0}^{2\pi}M_{f}(\theta)d\theta,
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-w=2A\pi I_{0}(B),
-\]
-
-\end_inset
-
-où 
-\begin_inset Formula $I_{\alpha}(\cdot)$
-\end_inset
-
- est une fonction de Bessel modifiée (ou hyperbolique) d'ordre 
-\begin_inset Formula $\alpha$
-\end_inset
-
-
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-Notation usuelle, voir §2.4 de: 
-\begin_inset Flex URL
-status open
-
-\begin_layout Plain Layout
-
-https://en.wikipedia.org/wiki/Bessel_function
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-.
- D'autre part,
-\begin_inset Formula 
-\[
-\left|I\right|=A\int_{0}^{2\pi}\cos\theta M_{f}(\theta)d\theta,
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-\left|I\right|=2A\pi I_{1}(B).
-\]
 
 \end_inset
 
