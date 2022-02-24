@@ -129,7 +129,15 @@ rouille
 \end_layout
 
 \begin_layout Itemize
-no memory leak or segfault, generally guaranteed at compile time; 
+no memory leak or segfault, generally guaranteed at compile time 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "jung2017rustbelt"
+literal "false"
+
+\end_inset
+
+; 
 \end_layout
 
 \begin_layout Itemize
@@ -155,7 +163,72 @@ most loved programming language
 \end_inset
 
  in the Stack Overflow Developer Survey every year since 2016.
- 
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+Tutorial objectives
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+If time permits:
+\end_layout
+
+\begin_layout Itemize
+Simple Rust programs manipulations.
+\end_layout
+
+\begin_layout Itemize
+Iterators and automatic parallelism.
+\end_layout
+
+\begin_layout Itemize
+A very simple example of struct with generics and traits.
+\end_layout
+
+\begin_layout Itemize
+A C wrapper for using OpenCL in Rust.
+\end_layout
+
+\begin_layout Itemize
+An example of macro.
+\end_layout
+
+\begin_layout Itemize
+Documentation and testing.
+\end_layout
+
+\begin_layout Standard
+Not seen today, but important:
+\end_layout
+
+\begin_layout Itemize
+Rust pointers: Box, Rc, RefCell, Arc.
+\end_layout
+
+\begin_layout Itemize
+Thread safety.
+\end_layout
+
+\begin_layout Itemize
+Standard library.
 \end_layout
 
 \end_deeper
@@ -201,6 +274,7 @@ inline true
 status open
 
 \begin_layout Plain Layout
+
 curl -$
 \backslash
 ,$-proto '=https' -$
@@ -224,6 +298,7 @@ inline false
 status open
 
 \begin_layout Plain Layout
+
 cargo new bonjour; cd bonjour
 \end_layout
 
@@ -243,6 +318,7 @@ inline false
 status open
 
 \begin_layout Plain Layout
+
 cargo run
 \end_layout
 
@@ -311,7 +387,15 @@ Wave equation with unknown
 
 \end_inset
 
-Leapfrog scheme
+Leapfrog (
+\begin_inset Quotes eld
+\end_inset
+
+saute-mouton
+\begin_inset Quotes erd
+\end_inset
+
+) scheme
 \begin_inset Formula 
 \[
 u_{i}^{n}\simeq u(x_{i},t_{n}),\quad x_{i}=i\Delta x,\quad t_{n}=n\Delta t,
@@ -433,23 +517,23 @@ First transformation
 
 \begin_deeper
 \begin_layout Itemize
-improve the solver thanks to cargo clippy
+Improve the solver thanks to cargo clippy.
 \end_layout
 
 \begin_layout Itemize
-change all loop with iterators
+Change all loop with iterators.
 \end_layout
 
 \begin_layout Itemize
-make the solver parallel thanks to rayon
+Make the solver parallel thanks to rayon.
 \end_layout
 
 \begin_layout Itemize
-try to change some parts of the program
+Try to change some parts of the program.
 \end_layout
 
 \begin_layout Itemize
-simple lines can be tested at 
+Simple lines can be tested at 
 \begin_inset CommandInset href
 LatexCommand href
 name "https://play.rust-lang.org/"
@@ -458,7 +542,7 @@ literal "false"
 
 \end_inset
 
-
+.
 \end_layout
 
 \end_deeper
@@ -484,8 +568,8 @@ status open
 
 \begin_deeper
 \begin_layout Standard
-We know consider the 2D case on a square.En 2D, le schéma saute-mouton avec
- source sonore s'écrit
+We know consider the 2D case on a square.
+ In 2D the leapfrog scheme reads:
 \begin_inset Formula 
 \begin{multline}
 p_{i,j}^{n+1}=-p_{i,j}^{n-1}+2(1-2\beta^{2})p_{i,j}^{n}\\
@@ -494,8 +578,7 @@ p_{i,j}^{n+1}=-p_{i,j}^{n-1}+2(1-2\beta^{2})p_{i,j}^{n}\\
 
 \end_inset
 
-Pour les bords parfaitement réfléchissants, il faut utiliser les relations
- suivantes
+Boundary conditions:
 \begin_inset Formula 
 \begin{equation}
 p_{0,j}^{n}=p_{1,j}^{n}.\label{eq:west}
@@ -553,23 +636,19 @@ Code description
 
 \begin_deeper
 \begin_layout Itemize
-we define a 2D array struct
+We define a 2D array struct.
 \end_layout
 
 \begin_layout Itemize
-overloading of the [][] operator
+Overloading of the [][] operator for immutable or mutable access.
 \end_layout
 
 \begin_layout Itemize
-template <T>
+template <T>.
 \end_layout
 
 \begin_layout Itemize
-parallelism with rayon
-\end_layout
-
-\begin_layout Itemize
-2D plot with python
+2D plot with python.
 \end_layout
 
 \end_deeper
@@ -595,23 +674,27 @@ OpenCL wrapper in Rust
 
 \begin_deeper
 \begin_layout Itemize
-C bindings
+C bindings.
 \end_layout
 
 \begin_layout Itemize
-unsafe code
+Unsafe code.
 \end_layout
 
 \begin_layout Itemize
-fine memory management
+Memory management.
 \end_layout
 
 \begin_layout Itemize
-example of macro
+One example of macro.
 \end_layout
 
 \begin_layout Itemize
-application to the wave equation on GPU
+Doc and testing with Cargo.
+\end_layout
+
+\begin_layout Itemize
+Application to the wave equation on GPU.
 \end_layout
 
 \end_deeper
@@ -835,7 +918,7 @@ split at mut
  More details in 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "gerhard:hal-03218086"
+key "gerhard2021cfl"
 literal "false"
 
 \end_inset
@@ -996,7 +1079,7 @@ Bibliography
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
 btprint "btPrintCited"
-bibfiles "/Users/helluy/GITLAB/patapon/mhd/doc/spring_mhd_lbm"
+bibfiles "tutorust"
 options "alpha"
 
 \end_inset
