@@ -16,33 +16,7 @@ fn bosse2d(x: f64, y: f64) -> f64 {
     peak(r)
 }
 
-fn zero2d(x: f64, y: f64) -> f64 {
-    0.
-}
-
-fn bosse(x: f64) -> f64 {
-    peak(x - 0.5)
-}
-
-fn source(x: [f64; 2], t: f64) -> f64 {
-    let xm = 0.25;
-    let ym = 0.25;
-    let r = 0.1;
-
-    let d = ((x[0] - xm) * (x[0] - xm) + (x[1] - ym) * (x[1] - ym)).sqrt();
-    let mut s = 0.;
-
-    let pi = std::f64::consts::PI;
-
-    if d < r {
-        s = (10. * 2. * pi * (2 as f64).sqrt() * t).sin();
-    }
-    s
-}
-
 fn writepycom() {
-    // use std::path::Path;
-    // if
     let pycom = r#"
 from matplotlib.pyplot import *
 from math import *
@@ -128,7 +102,7 @@ impl<T> Index<usize> for Data2D<T> {
         &self.data[index * self.n..(index + 1) * self.n]
     }
 }
-// voir https://stackoverflow.com/questions/33770989/implementing-the-index-operator-for-matrices-with-multiple-parameters
+
 use std::ops::IndexMut;
 impl<T> IndexMut<usize> for Data2D<T> {
     //type Output = [T];
@@ -150,6 +124,7 @@ impl<T> Data2D<T> {
         Data2D { n, data }
     }
 }
+
 impl Data2D<f64> {
     fn plot(&self) {
         let dx = L / (self.n - 2) as f64;
@@ -170,7 +145,7 @@ fn main() {
 
     let dt = dx * cfl;
 
-    let xc: Vec<f64> = (0..nx + 2).map(|i| i as f64 * dx - dx / 2.).collect();
+    //let xc: Vec<f64> = (0..nx + 2).map(|i| i as f64 * dx - dx / 2.).collect();
 
     let mut u_now = Data2D::new(nx + 2, bosse2d);
     let mut unext = u_now.clone();
@@ -180,21 +155,19 @@ fn main() {
 
     let b = dt / dx;
     let mut count = 0;
-    let plotfreq = 100;
+    let plotfreq = 200000;
 
     while t < tmax {
         if count % plotfreq == 0 {
-            //u_now.plot();
+            u_now.plot();
         }
         count += 1;
-    
         for i in 1..nx + 1 {
             for j in 1..nx + 1 {
                 unext[i][j] = -uprev[i][j]
                     + 2. * (1. - 2. * b * b) * u_now[i][j]
                     + b * b * (u_now[i - 1][j] + u_now[i + 1][j])
                     + b * b * (u_now[i][j - 1] + u_now[i][j + 1]);
-                    //- dt * dt * source([xc[i], xc[j]],t);
             }
         }
         for k in 1..nx + 1 {
@@ -218,27 +191,4 @@ fn main() {
         println!("t={}, dt={}", t, dt);
     }
     u_now.plot();
-}
-
-fn plot1d(x: &Vec<f64>, y: &Vec<f64>, z: &Vec<f64>) {
-    let filename = "ploplo.dat";
-    use std::fs::File;
-    use std::io::BufWriter;
-    use std::io::Write;
-    {
-        let meshfile = File::create(filename).unwrap();
-        let mut meshfile = BufWriter::new(meshfile); // create a buffer for faster writes...
-
-        x.iter()
-            .zip(y.iter().zip(z.iter()))
-            .for_each(|(x, (y, z))| {
-                writeln!(meshfile, "{} {} {}", *x, *y, *z).unwrap();
-            });
-    }
-
-    use std::process::Command;
-    Command::new("python3")
-        .arg("src/plot1d.py")
-        .status()
-        .expect("plot failed !");
 }
