@@ -697,6 +697,21 @@ Doc and testing with Cargo.
 Application to the wave equation on GPU.
 \end_layout
 
+\begin_layout Itemize
+Source code at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/phelluy/minicl
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \end_deeper
 \begin_layout Standard
 \begin_inset Separator plain
