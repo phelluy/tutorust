@@ -51,10 +51,10 @@ fn main() {
         }
         count += 1;
 
-        for i in 1..nx + 1 {
-            unext[i] =
-                -uprev[i] + 2. * (1. - b * b) * u_now[i] + b * b * (u_now[i - 1] + u_now[i + 1]);
-        }
+        // for i in 1..nx + 1 {
+        //     unext[i] =
+        //         -uprev[i] + 2. * (1. - b * b) * u_now[i] + b * b * (u_now[i - 1] + u_now[i + 1]);
+        // }
 
         let it_unext = unext.par_iter_mut().skip(1).take(nx);
         let it_uprev = uprev.par_iter().skip(1).take(nx);

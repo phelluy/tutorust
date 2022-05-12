@@ -1,4 +1,3 @@
-use rayon::prelude::*;
 const L: f64 = 1.;
 
 fn peak(x: f64) -> f64 {
@@ -7,8 +6,7 @@ fn peak(x: f64) -> f64 {
     let eps2 = eps * eps;
     if r2 / eps2 < 1. {
         (1. - r2 / eps2).powi(4)
-    } 
-    else {
+    } else {
         0.
     }
 }
@@ -32,7 +30,11 @@ fn main() {
     let mut unext = vec![0.; nx + 2];
     let mut uprev = vec![0.; nx + 2];
 
-    let xc : Vec<f64> = (0..nx+2).map(|i| i as f64 * dx - dx / 2.).collect();
+    let mut xc = vec![0.; nx + 2];
+
+    for i in 0..nx + 2 {
+        xc[i] = i as f64 * dx - dx / 2.;
+    }
 
     for i in 0..nx + 2 {
         u_now[i] = bosse(xc[i]);
@@ -55,27 +57,12 @@ fn main() {
             unext[i] =
                 -uprev[i] + 2. * (1. - b * b) * u_now[i] + b * b * (u_now[i - 1] + u_now[i + 1]);
         }
-
-        let it_unext = unext.par_iter_mut().skip(1).take(nx);
-        let it_uprev = uprev.par_iter().skip(1).take(nx);
-        let it_u_now = u_now.par_iter().skip(1);
-        let it_now_m = u_now.par_iter();
-        let it_now_p = u_now.par_iter().skip(2);
-
-        let iter = it_unext.zip(it_uprev.zip(it_u_now.zip(it_now_m.zip(it_now_p))));
-
-        iter.for_each(|(unext,(uprev,(u_now,(u_now_m,u_now_p))))| {
-            *unext =
-                -uprev + 2. * (1. - b * b) * u_now + b * b * (u_now_m + u_now_p);
-        });
         //unext[0] = unext[1];
         // fixed the left 
         unext[0] = 0.;
         // free on the right
         unext[nx + 1] = unext[nx];
         //unext[nx + 1] = 0.;
-        // uprev = u_now;
-        // u_now=unext;
         for i in 0..nx + 2 {
             uprev[i] = u_now[i];
             u_now[i] = unext[i];
