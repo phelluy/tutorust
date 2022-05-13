@@ -525,7 +525,7 @@ Improve the solver thanks to cargo clippy.
 \end_layout
 
 \begin_layout Itemize
-Change all loop with iterators.
+Change all loops with iterators.
 \end_layout
 
 \begin_layout Itemize
@@ -652,7 +652,7 @@ template <T>.
 \end_layout
 
 \begin_layout Itemize
-2D plot with python.
+2D plot with Python.
 \end_layout
 
 \end_deeper
