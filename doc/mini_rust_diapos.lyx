@@ -572,7 +572,7 @@ status open
 
 \begin_deeper
 \begin_layout Standard
-We know consider the 2D case on a square.
+We now consider the 2D case on a square.
  In 2D the leapfrog scheme reads:
 \begin_inset Formula 
 \begin{multline}
