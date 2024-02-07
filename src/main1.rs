@@ -16,6 +16,111 @@ fn bosse2d(x: f64, y: f64) -> f64 {
     peak(r)
 }
 
+
+#[derive(Debug, Clone)]
+struct Data2D<T> {
+    n: usize,
+    data: Vec<T>,
+}
+
+use std::ops::Index;
+impl<T> Index<usize> for Data2D<T> {
+    type Output = [T];
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.data[index * self.n..(index + 1) * self.n]
+    }
+}
+
+use std::ops::IndexMut;
+impl<T> IndexMut<usize> for Data2D<T> {
+    //type Output = [T];
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.data[index * self.n..(index + 1) * self.n]
+    }
+}
+
+impl<T> Data2D<T> {
+    fn new(n: usize, init_fn: fn(f64, f64) -> T) -> Data2D<T> {
+        let dx = L / (n - 2) as f64;
+        let data = (0..n * n)
+            .map(|k| {
+                let i = k / n;
+                let j = k % n;
+                init_fn(i as f64 * dx - dx / 2., j as f64 * dx - dx / 2.)
+            })
+            .collect();
+        Data2D { n, data }
+    }
+}
+
+impl Data2D<f64> {
+    fn plot(&self) {
+        let dx = L / (self.n - 2) as f64;
+        let xc: Vec<f64> = (0..self.n).map(|i| (i as f64 - 0.5) * dx).collect();
+        let yc = xc.clone();
+        plotpy(&xc, &yc, &self.data)
+    }
+}
+
+fn main() {
+    let nx = 2048;
+
+    let dx = L / nx as f64;
+
+    let tmax = 0.6;
+
+    let cfl = 0.4;
+
+    let dt = dx * cfl;
+
+    //let xc: Vec<f64> = (0..nx + 2).map(|i| i as f64 * dx - dx / 2.).collect();
+
+    let mut u_now = Data2D::new(nx + 2, bosse2d);
+    let mut unext = u_now.clone();
+    let mut uprev = u_now.clone();
+
+    let mut t = 0.;
+
+    let b = dt / dx;
+    let mut count = 0;
+    let plotfreq = 200000;
+
+    while t < tmax {
+        if count % plotfreq == 0 {
+            u_now.plot();
+        }
+        count += 1;
+        for i in 1..nx + 1 {
+            for j in 1..nx + 1 {
+                unext[i][j] = -uprev[i][j]
+                    + 2. * (1. - 2. * b * b) * u_now[i][j]
+                    + b * b * (u_now[i - 1][j] + u_now[i + 1][j])
+                    + b * b * (u_now[i][j - 1] + u_now[i][j + 1]);
+            }
+        }
+        for k in 1..nx + 1 {
+            unext[k][0] = unext[k][1];
+            unext[k][nx + 1] = unext[k][nx];
+            unext[0][k] = unext[1][k];
+            unext[nx + 1][k] = unext[nx][k];
+            // unext[k][0] = 0.;
+            // unext[k][nx+1] = 0.;
+            // unext[0][k] = 0.;
+            // unext[nx+1][k] = 0.;
+        }
+        for i in 0..nx + 2 {
+            for j in 0..nx + 2 {
+                uprev[i][j] = u_now[i][j];
+                u_now[i][j] = unext[i][j];
+            }
+        }
+        t += dt;
+
+        println!("t={}, dt={}", t, dt);
+    }
+    u_now.plot();
+}
+
 fn writepycom() {
     let pycom = r#"
 from matplotlib.pyplot import *
@@ -83,112 +188,9 @@ fn plotpy(xp: &Vec<f64>, yp: &Vec<f64>, zp: &Vec<f64>) {
     } // ensures that the file is closed
 
     use std::process::Command;
-    Command::new("python3")
+    Command::new("python")
         .arg("skyrs_plot.py")
         .status()
         .expect("Plot failed: you need Python3 and Matplotlib in your PATH.");
 }
 
-#[derive(Debug, Clone)]
-struct Data2D<T> {
-    n: usize,
-    data: Vec<T>,
-}
-
-use std::ops::Index;
-impl<T> Index<usize> for Data2D<T> {
-    type Output = [T];
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.data[index * self.n..(index + 1) * self.n]
-    }
-}
-
-use std::ops::IndexMut;
-impl<T> IndexMut<usize> for Data2D<T> {
-    //type Output = [T];
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.data[index * self.n..(index + 1) * self.n]
-    }
-}
-
-impl<T> Data2D<T> {
-    fn new(n: usize, init_fn: fn(f64, f64) -> T) -> Data2D<T> {
-        let dx = L / (n - 2) as f64;
-        let data = (0..n * n)
-            .map(|k| {
-                let i = k / n;
-                let j = k % n;
-                init_fn(i as f64 * dx - dx / 2., j as f64 * dx - dx / 2.)
-            })
-            .collect();
-        Data2D { n, data }
-    }
-}
-
-impl Data2D<f64> {
-    fn plot(&self) {
-        let dx = L / (self.n - 2) as f64;
-        let xc: Vec<f64> = (0..self.n).map(|i| (i as f64 - 0.5) * dx).collect();
-        let yc = xc.clone();
-        plotpy(&xc, &yc, &self.data)
-    }
-}
-
-fn main() {
-    let nx = 1000;
-
-    let dx = L / nx as f64;
-
-    let tmax = 0.6;
-
-    let cfl = 0.4;
-
-    let dt = dx * cfl;
-
-    //let xc: Vec<f64> = (0..nx + 2).map(|i| i as f64 * dx - dx / 2.).collect();
-
-    let mut u_now = Data2D::new(nx + 2, bosse2d);
-    let mut unext = u_now.clone();
-    let mut uprev = u_now.clone();
-
-    let mut t = 0.;
-
-    let b = dt / dx;
-    let mut count = 0;
-    let plotfreq = 200000;
-
-    while t < tmax {
-        if count % plotfreq == 0 {
-            u_now.plot();
-        }
-        count += 1;
-        for i in 1..nx + 1 {
-            for j in 1..nx + 1 {
-                unext[i][j] = -uprev[i][j]
-                    + 2. * (1. - 2. * b * b) * u_now[i][j]
-                    + b * b * (u_now[i - 1][j] + u_now[i + 1][j])
-                    + b * b * (u_now[i][j - 1] + u_now[i][j + 1]);
-            }
-        }
-        for k in 1..nx + 1 {
-            unext[k][0] = unext[k][1];
-            unext[k][nx + 1] = unext[k][nx];
-            unext[0][k] = unext[1][k];
-            unext[nx + 1][k] = unext[nx][k];
-            // unext[k][0] = 0.;
-            // unext[k][nx+1] = 0.;
-            // unext[0][k] = 0.;
-            // unext[nx+1][k] = 0.;
-        }
-        for i in 0..nx + 2 {
-            for j in 0..nx + 2 {
-                uprev[i][j] = u_now[i][j];
-                u_now[i][j] = unext[i][j];
-            }
-        }
-        t += dt;
-
-        println!("t={}, dt={}", t, dt);
-    }
-    u_now.plot();
-}

@@ -92,7 +92,7 @@ fn plot1d(x: &Vec<f64>, y: &Vec<f64>, z: &Vec<f64>) {
     }
 
     use std::process::Command;
-    Command::new("python3")
+    Command::new("python")
         .arg("src/plot1d.py")
         .status()
         .expect("plot failed !");
