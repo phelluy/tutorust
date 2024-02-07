@@ -85,7 +85,7 @@ multicol
 \begin_body
 
 \begin_layout Title
-Mini introduction to Rust
+Rust for compressible flows (and more...)
 \end_layout
 
 \begin_layout Author
@@ -93,11 +93,11 @@ Philippe Helluy
 \end_layout
 
 \begin_layout Institute
-IRMA Strasbourg, Inria Tonus
+IRMA Strasbourg, Inria Tonus/Macaron
 \end_layout
 
 \begin_layout Date
-May 2022
+February 2024
 \end_layout
 
 \begin_layout Section
@@ -875,7 +875,7 @@ Dependency graph of the computations
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename ../../patapon/mhd/doc/img_beamer/downwind_graph.png
+	filename downwind_graph.png
 	lyxscale 50
 	width 60text%
 
@@ -949,7 +949,7 @@ literal "false"
 \begin_layout Standard
 \align center
 \begin_inset Graphics
-	filename ../../patapon/mhd/doc/img_beamer/speedup_mem.png
+	filename speedup_mem.png
 	width 80text%
 
 \end_inset
