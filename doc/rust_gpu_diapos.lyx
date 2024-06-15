@@ -1,0 +1,1163 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass beamer
+\begin_preamble
+
+\usepackage{multicol} 
+\end_preamble
+\use_default_options false
+\begin_modules
+multicol
+\end_modules
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding iso8859-15
+\fontencoding T1
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 2
+\use_package cancel 0
+\use_package esint 1
+\use_package mathdots 0
+\use_package mathtools 0
+\use_package mhchem 0
+\use_package stackrel 0
+\use_package stmaryrd 0
+\use_package undertilde 0
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 0
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Rust, OpenCL, GPU
+\end_layout
+
+\begin_layout Author
+Philippe Helluy
+\end_layout
+
+\begin_layout Institute
+IRMA Strasbourg, Inria Macaron
+\end_layout
+
+\begin_layout Date
+June 2024
+\end_layout
+
+\begin_layout Section
+A simple wave solver in Rust
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status collapsed
+
+\begin_layout Plain Layout
+What is Rust ?
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Rust (
+\begin_inset Quotes eld
+\end_inset
+
+rouille
+\begin_inset Quotes erd
+\end_inset
+
+ in French) is a programming language created in 2009, using only old (rusty),
+ but robust ideas.
+ Some features, compared to C, C++ and Python, are: 
+\end_layout
+
+\begin_layout Itemize
+no memory leak or segfault, generally guaranteed at compile time 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "jung2017rustbelt"
+literal "false"
+
+\end_inset
+
+; 
+\end_layout
+
+\begin_layout Itemize
+no unitialized memory, no hidden type conversion (such as int to float,
+ float32 to float64);
+\end_layout
+
+\begin_layout Itemize
+no race conditions, generally guaranteed at compile time; 
+\end_layout
+
+\begin_layout Itemize
+strict ownership system, fast executable; 
+\end_layout
+
+\begin_layout Itemize
+Cargo, which replaces cmake, doxygen, ctest, anaconda, etc.
+ in a single utility.
+ 
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Quotes qld
+\end_inset
+
+most loved programming language
+\begin_inset Quotes qrd
+\end_inset
+
+ in the Stack Overflow Developer Survey every year since 2016.
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+1D solver
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Wave equation with unknown 
+\begin_inset Formula $u(x,t)$
+\end_inset
+
+, 
+\begin_inset Formula $x\in\mathbb{R}$
+\end_inset
+
+, 
+\begin_inset Formula $t\in]0,T[,$
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{\partial^{2}u}{\partial t^{2}}-\frac{\partial^{2}u}{\partial x^{2}}=0,\quad u(x,0)=u^{0}(x),\quad\frac{\partial u}{\partial t}(x,0)=0.
+\]
+
+\end_inset
+
+Leapfrog (
+\begin_inset Quotes eld
+\end_inset
+
+saute-mouton
+\begin_inset Quotes erd
+\end_inset
+
+) scheme
+\begin_inset Formula 
+\[
+u_{i}^{n}\simeq u(x_{i},t_{n}),\quad x_{i}=i\Delta x,\quad t_{n}=n\Delta t,
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+u_{i}^{n+1}=-u_{i}^{n-1}+2(1-\beta^{2})u_{i}^{n}+\beta^{2}\left(u_{i-1}^{n}+u_{i+1}^{n}\right),\label{eq:leapfrog}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $\beta=\Delta t/\Delta x$
+\end_inset
+
+.
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+Rust code
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Variables are immutable by default.
+\end_layout
+
+\begin_layout Itemize
+An object passed to a function cannot be used anymore: use reference instead.
+\end_layout
+
+\begin_layout Itemize
+Only one mutable reference or several immutable references allowed at a
+ time.
+\end_layout
+
+\begin_layout Itemize
+The compiler messages are generally helpful.
+ Cargo clippy gives hints about what can be improved.
+\end_layout
+
+\begin_layout Itemize
+It is recommended to use iterators for efficient and robust programs.
+ Use of three different arrays for storing 
+\begin_inset Formula $u_{i}^{n-1}$
+\end_inset
+
+, 
+\begin_inset Formula $u_{i}^{n}$
+\end_inset
+
+ and 
+\begin_inset Formula $u_{i}^{n+1}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+Automatic parallelism with the rayon library, without race condition.
+\end_layout
+
+\begin_layout Itemize
+Source code at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/phelluy/tutorust
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+2D solver
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+We now consider the 2D case on a square.
+ In 2D the leapfrog scheme reads:
+\begin_inset Formula 
+\begin{multline}
+p_{i,j}^{n+1}=-p_{i,j}^{n-1}+2(1-2\beta^{2})p_{i,j}^{n}\\
++\beta^{2}\left(p_{i-1,j}^{n}+p_{i+1,j}^{n}p_{i,j-1}^{n}+p_{i,j+1}^{n}\right).\label{eq:leapfrog-2d}
+\end{multline}
+
+\end_inset
+
+Boundary conditions:
+\begin_inset Formula 
+\begin{equation}
+p_{0,j}^{n}=p_{1,j}^{n}.\label{eq:west}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+p_{N+1,j}^{n}=p_{N,j}^{n}.\label{eq:east}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+p_{i,0}^{n}=p_{i,1}^{n}.\label{eq:south}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+p_{i,N+1}^{n}=p_{i,N}^{n}.\label{eq:north}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+Code description
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+We define a 2D array struct.
+\end_layout
+
+\begin_layout Itemize
+Overloading of the [][] operator for immutable or mutable access.
+\end_layout
+
+\begin_layout Itemize
+template <T>.
+\end_layout
+
+\begin_layout Itemize
+2D plot with Python.
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+OpenCL wrapper in Rust
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+C bindings.
+\end_layout
+
+\begin_layout Itemize
+Unsafe code.
+\end_layout
+
+\begin_layout Itemize
+Memory management.
+\end_layout
+
+\begin_layout Itemize
+One example of macro.
+\end_layout
+
+\begin_layout Itemize
+Doc and testing with Cargo.
+\end_layout
+
+\begin_layout Itemize
+Application to the wave equation on GPU.
+\end_layout
+
+\begin_layout Itemize
+Source code at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/phelluy/minicl
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+Application to MHD
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+MHD equations:
+\begin_inset Formula 
+\[
+\partial_{t}\left({\begin{array}{c}
+\rho\\
+{\rho{\mathbf{u}}}\\
+Q\\
+{\mathbf{B}}\\
+\psi
+\end{array}}\right)+\nabla\cdot\left({\begin{array}{c}
+{\rho{\mathbf{u}}}\\
+{\rho{\mathbf{u}}\otimes{\mathbf{u}}+(p+\frac{{{\mathbf{B}}\cdot{\mathbf{B}}}}{2})\mathbf{I}-{\mathbf{B}}\otimes{\mathbf{B}}}\\
+{(Q+p+\frac{{{\mathbf{B}}\cdot{\mathbf{B}}}}{2}){\mathbf{u}}-({\mathbf{B}}\cdot{\mathbf{u}}){\mathbf{B}}}\\
+{{\mathbf{u}}\otimes{\mathbf{B}}-{\mathbf{B}}\otimes{\mathbf{u}}}+\psi\mathbf{I}\\
+c_{h}^{2}{\mathbf{B}}
+\end{array}}\right)=\left(\begin{array}{c}
+0\\
+0\\
+0\\
+0\\
+0
+\end{array}\right),
+\]
+
+\end_inset
+
+where the velocity and magnetic field are denoted 
+\begin_inset Formula $\mathbf{u}=(u_{1},u_{2},u_{3})^{T},\quad\mathbf{B}=(B_{1},B_{2},B_{3})^{T}$
+\end_inset
+
+, the pressure is given by a perfect-gas law with a constant polytropic
+ exponent 
+\begin_inset Formula $\gamma>1$
+\end_inset
+
+ 
+\begin_inset Formula $p=(\gamma-1)(Q-\rho\frac{\mathbf{u}\cdot\mathbf{u}}{2}-\frac{\mathbf{B}\cdot\mathbf{B}}{2}).$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+Orszag-Tang test case
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Grid size: 4096x4096 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "baty2023robust"
+literal "false"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename orszag.png
+	lyxscale 30
+	width 90col%
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+LBM with OpenCL
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename bandwidth-lbm.png
+	lyxscale 30
+	width 100text%
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+Rust automatic parallelism
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Resolution of a PDE on a regular mesh split into 
+\begin_inset Quotes eld
+\end_inset
+
+boxes
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The computations on red boxes depend only on blue boxes and vice versa.
+\end_layout
+
+\begin_layout Itemize
+Sort the array of boxes by color.
+ Then 
+\begin_inset Quotes eld
+\end_inset
+
+split at mut
+\begin_inset Quotes erd
+\end_inset
+
+ the array: separate access to the blue and red boxes.
+\end_layout
+
+\begin_layout Itemize
+Automatic parallelization, without race condition.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{multicols}{2}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename damier-boxlab.png
+	lyxscale 50
+	width 90col%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+columnbreak
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula $\left[\begin{array}{cc}
+0\\
+\vdots & \text{mutable}\\
+7\\
+- & \leftarrow\text{split at mut here}\\
+8\\
+\vdots & \text{immutable}\\
+15
+\end{array}\right]$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{multicols}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Frame
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status collapsed
+
+\begin_layout Plain Layout
+Upwind scheme in 2D or 3D
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Dependency graph of the computations 
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename downwind_graph.png
+	lyxscale 50
+	width 60text%
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Itemize
+The solution can be explicitly computed by following a topological ordering
+ of a Direct Acyclic Graph (DAG), e.g.
+ 3, 7, 0, 15, 1, etc.
+ 
+\end_layout
+
+\begin_layout Itemize
+In addition there is parallelism: (3,7) can be computed in parallel, then
+ (0,15,1) can be computed in parallel, etc.
+ 
+\end_layout
+
+\begin_layout Itemize
+Low storage: the solution can be replaced in memory during the computations.
+ 
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status collapsed
+
+\begin_layout Plain Layout
+Rust implementation
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+We have implemented the upwind algorithm in Rust with the 
+\begin_inset Quotes eld
+\end_inset
+
+split at mut
+\begin_inset Quotes erd
+\end_inset
+
+ trick.
+ More details in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gerhard2021cfl"
+literal "false"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename speedup_mem.png
+	width 80text%
+
+\end_inset
+
+ 
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status collapsed
+
+\begin_layout Plain Layout
+Application to an electromagnetic solver
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+The transport solver is the building block of our CFL-less scheme for conservati
+on laws.
+ 
+\end_layout
+
+\begin_layout Itemize
+Unstructured mesh of the unit cube made of large and small cells.
+ A small electric wire at the middle of the mesh.
+\end_layout
+
+\begin_layout Itemize
+Resolution of the Maxwell equations.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename mesh-fil.png
+	lyxscale 30
+	width 50text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename resu-fil.png
+	lyxscale 30
+	width 80text%
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+\begin_inset Quotes eld
+\end_inset
+
+Kyoto
+\begin_inset Quotes erd
+\end_inset
+
+ test-case
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Maxwell, 6 millions tetrahedrons 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "gerhard2024parallel"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename compa-koug-clac.png
+	lyxscale 30
+	width 80text%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Graphics
+	filename kyoto-hpc.png
+	lyxscale 30
+	width 50text%
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status collapsed
+
+\begin_layout Plain Layout
+Conclusion
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+Practical use of Rust in a scientific computing context.
+\end_layout
+
+\begin_layout Itemize
+GPU computing support through OpenCL: works on Linux, Windows, Mac.
+\end_layout
+
+\begin_layout Itemize
+Less bugs, which was the objective.
+\end_layout
+
+\begin_layout Itemize
+Automatic, fast and robust parallelism.
+\end_layout
+
+\begin_layout Itemize
+Friendly environment.
+\end_layout
+
+\begin_layout Itemize
+Many other features, which we have not yet explored.
+\end_layout
+
+\begin_layout Itemize
+But if I had to develop a big project, Kokkos is probably a much safer choice
+ !
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 4
+status open
+
+\begin_layout Plain Layout
+Post scriptum: on-the-fly memory compression
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+PhD thesis of Clement Flint: CFD on a structured grid.
+ The grid does not enter the GPU memory.
+\end_layout
+
+\begin_layout Itemize
+Wavelet compression for virtually increasing the memory.
+\end_layout
+
+\begin_layout Itemize
+By turns, each block is uncompressed, processed and recompressed (in cache
+ memory)
+\end_layout
+
+\begin_layout Itemize
+C++ and CUDA (for the moment)
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename gpu_compress.png
+	lyxscale 30
+	width 100text%
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\begin_layout Frame
+\begin_inset Argument 3
+status collapsed
+
+\begin_layout Plain Layout
+allowframebreaks
+\end_layout
+
+\end_inset
+
+
+\begin_inset Argument 4
+status collapsed
+
+\begin_layout Plain Layout
+Bibliography
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+
+\size tiny
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+btprint "btPrintCited"
+bibfiles "tutorust"
+options "alpha"
+
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+\begin_inset Separator plain
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
